@@ -305,7 +305,7 @@ void generateSuperRoute(vector<City> cities)
 	
 	unsigned int populationSize = 100;
 	unsigned int maxThreads = 4;
-	int generations = 300;
+	int generations = 3000;
 	
 	WisdomOfCrowdsHelper* wisemanHelper;
 	thread superThread;
@@ -374,7 +374,7 @@ void generateSuperRoute(vector<City> cities)
 			{
 				for(unsigned int j = 0; j < 10; j++)
 				{
-					drawRoute((*tsmHelpers[k]).GetBestRoute(), shader, (10.0f*j/populationSize)-.75, (10.0f*i/populationSize), (0.15f), 2.0f);
+					drawRoute((*tsmHelpers[k]).GetBestRoute(), shader, (15.0f*j/populationSize)-.75, (15.0f*i/populationSize)-.5, (0.3f), 3.0f);
 					k++;
 				}
 			}
@@ -403,7 +403,7 @@ void generateSuperRoute(vector<City> cities)
 				superThread = thread(&WisdomOfCrowdsHelper::GenerateWiseman, wisemanHelper);
 			}
 		} else {
-			drawRoute((*wisemanHelper).GetWiseman(), shader, 0.0f, 0.0f, 2.00f, 2.0f);
+			drawRoute((*wisemanHelper).GetWiseman(), shader, 0.0f, 0.0f, 2.00f, 5.0f);
 			//cout << "Generation " << (*superRoute).GetCurrentGeneration() << ": " << (*superRoute).GetBestRoute().GetTotalDistance() << endl;
 		}
 		
@@ -411,7 +411,7 @@ void generateSuperRoute(vector<City> cities)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		chrono::milliseconds dura(100);
+		chrono::milliseconds dura(2000);
 		this_thread::sleep_for(dura);
 	}
 	

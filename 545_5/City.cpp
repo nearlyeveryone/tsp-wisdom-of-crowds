@@ -42,14 +42,18 @@ int City::GetCountForCity(int cityId, unsigned int arraySize)
 {
 	if(!countersInitalized)
 		initalizeCounters(arraySize);
-	return CityCounters[cityId].count;
+		countersInitalized = true;
+	return CityCounters[cityId-1].count;
 	
 }
 
 void City::IncrementCityCounter(int cityId, unsigned int arraySize)
 {
 	if(!countersInitalized)
+	{
 		initalizeCounters(arraySize);
-		
-	CityCounters[cityId].count++;
+		countersInitalized = true;
+	}
+	
+	CityCounters[cityId-1].count++;
 }
