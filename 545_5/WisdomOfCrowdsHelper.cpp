@@ -65,6 +65,7 @@ void WisdomOfCrowdsHelper::GenerateWiseman()
 	
 	SalesmanRoute wiseRoute(newRoute);
 	
+	cout << "wiseman d = "<< wiseRoute.GetTotalDistance() << endl;
 	setWiseman(wiseRoute);
 }
 
