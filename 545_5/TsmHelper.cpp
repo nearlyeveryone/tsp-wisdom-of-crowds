@@ -4,7 +4,10 @@ using namespace std;
 
 TsmHelper::TsmHelper(vector<City> cities)
 {
-	_bestRoute = SalesmanRoute(cities);
+	SalesmanRoute initalRoute(cities);
+	vector<SalesmanRoute> initalPopulation;
+	initalPopulation.push_back(initalRoute);
+	_population = initalPopulation;
 	addPointToGraph(0, GetBestRoute().GetTotalDistance());
 }
 
@@ -15,12 +18,18 @@ TsmHelper::~TsmHelper()
 SalesmanRoute TsmHelper::GetBestRoute()
 {
 	lock_guard<mutex> lockGuard(muteRoute);
-	return _bestRoute;
+	return _population[0];
 }
-void TsmHelper::setBestRoute(SalesmanRoute route)
+vector<SalesmanRoute> TsmHelper::GetPopulation()
 {
 	lock_guard<mutex> lockGuard(muteRoute);
-	_bestRoute = route;
+	return _population;
+}
+
+void TsmHelper::setPopulation(vector<SalesmanRoute> population)
+{
+	lock_guard<mutex> lockGuard(muteRoute);
+	_population = population;
 }
 
 int TsmHelper::GetCurrentGeneration()
@@ -62,7 +71,7 @@ bool TsmHelper::IsJobFinished()
 	return jobFinished;
 }
 
-void TsmHelper::GeneticStatistics(int sampleSize, int populationSize, int generations, bool reverseCrossover, bool adaptiveMutator)
+void TsmHelper::GeneticStatistics(int sampleSize, int populationSize, int generations)
 {
 	vector<SalesmanRoute> routes;
 	struct RouteStatistics routeStatistics;
@@ -70,7 +79,7 @@ void TsmHelper::GeneticStatistics(int sampleSize, int populationSize, int genera
 	//collect data
 	for(int i = 0; i < sampleSize; i++)
 	{
-		GeneticAlgorithm(populationSize, generations, reverseCrossover, adaptiveMutator);
+		GeneticAlgorithm(populationSize, generations);
 		if(routeStatistics.max == -1 || GetBestRoute().GetTotalDistance() > routeStatistics.max)
 		{
 			routeStatistics.max = GetBestRoute().GetTotalDistance();
@@ -103,76 +112,52 @@ void TsmHelper::GeneticStatistics(int sampleSize, int populationSize, int genera
 	routeStats = routeStatistics;
 }
 
-void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int populationSize, int generations, bool reverseCrossover, bool adaptiveMutator)
+void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int populationSize, int generations)
 {
 	vector<SalesmanRoute> population = initalPopulation;
 	
 	srand(time(NULL));
 	
 	setCurrentGeneration(0);
-	setBestRoute(population[0]);
+	setPopulation(population);
 	clearGraphPoints();
 	addPointToGraph(0, GetBestRoute().GetTotalDistance());
 	
 	int mutationRate = (GetBestRoute().GetRoute().size()/20)+1;
 	SalesmanRoute overallBestRoute;
-	double previousDistance = -1;
-	double generationsSinceChange = 0;
 	
 	for(int i = 0; i < generations; i++)
 	{
 		vector<SalesmanRoute> children;
 		
-		previousDistance = population[0].GetTotalDistance();
 		//make offspring and add to population
 		for(int j = 0; j < populationSize; j++)
 		{
 			int rt1 = rand() % populationSize;
 			int rt2 = rand() % populationSize;
 			
-			SalesmanRoute offspring = population[rt1].CrossoverSplit(population[rt2], reverseCrossover);
+			SalesmanRoute offspring = population[rt1].CrossoverSplit(population[rt2]);
 			
 			children.push_back(offspring);
 		}
-
+		
 		//take ~75% of the children, and ~25% of the top of the previous generation
 		children.resize(populationSize-populationSize/4 + 1);
 		children.insert(children.end(), population.begin(), population.begin() + populationSize/4 + 1);
 		
+		//mutate population
+		for(unsigned int j = 0; j < population.size()/20+1; j++)
+		{
+			population[rand() % population.size()].Mutate(mutationRate);
+		}
+		
 		//sort by fitness to ensure that the top 25% is taken in the next generation
 		population = children;
-		
-		if(adaptiveMutator)
-		{
-			if(previousDistance == population[0].GetTotalDistance())
-			{
-				generationsSinceChange++;
-			}
-			else if(generationsSinceChange > 0)
-			{
-				generationsSinceChange = 0;
-			}
-			if(generationsSinceChange >= 20)
-			{
-				//nuke population
-				for(unsigned int j = 5; j < population.size(); j++)
-				{
-					population[j].Mutate(mutationRate*generationsSinceChange);
-				}
-			}
-		}
-		else {
-			for(unsigned int j = 0; j < population.size()/20+1; j++)
-			{
-				population[rand() % population.size()].Mutate(mutationRate);
-			}
-		}
-		
 		sort(population.begin(), population.end());
 		
 		if(GetBestRoute().GetTotalDistance() > population[0].GetTotalDistance())
 		{
-			setBestRoute(population[0]);
+			setPopulation(population);
 		}
 		setCurrentGeneration(i+1);
 		addPointToGraph(i+1, population[0].GetTotalDistance());
@@ -181,7 +166,7 @@ void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int po
 	setJobFinished(true);
 }
 
-void TsmHelper::GeneticAlgorithm(int populationSize, int generations, bool reverseCrossover, bool adaptiveMutator)
+void TsmHelper::GeneticAlgorithm(int populationSize, int generations)
 {
 	vector<City> cities = GetBestRoute().GetRoute();
 	
@@ -194,5 +179,5 @@ void TsmHelper::GeneticAlgorithm(int populationSize, int generations, bool rever
 		initalPopulation.push_back(initalRoute);
 	}
 	
-	GeneticAlgorithm2(initalPopulation, populationSize, generations, reverseCrossover, adaptiveMutator);
+	GeneticAlgorithm2(initalPopulation, populationSize, generations);
 }

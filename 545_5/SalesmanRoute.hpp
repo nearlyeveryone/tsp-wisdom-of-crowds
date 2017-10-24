@@ -18,7 +18,7 @@ class SalesmanRoute
         void AddCityToRoute(City city);
 		void InsertCityInRoute(City city, int index);
 		void Mutate(int timesToMutate);
-		SalesmanRoute CrossoverSplit(SalesmanRoute mate, bool reverseCrossover);
+		SalesmanRoute CrossoverSplit(SalesmanRoute mate);
 		vector<City> GetRoute();
 		
 		bool operator <(const SalesmanRoute &rhs);

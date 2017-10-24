@@ -28,7 +28,7 @@ struct RouteStatistics
 class TsmHelper
 {
 private:
-	SalesmanRoute _bestRoute;
+	vector<SalesmanRoute> _population;
 	mutex muteRoute;
 	int _currentGeneration = 0;
 	mutex muteGeneration;
@@ -36,7 +36,7 @@ private:
 	mutex muteGraph;
 	bool jobFinished = false;
 	mutex muteJob;
-	void setBestRoute(SalesmanRoute route);
+	void setPopulation(vector<SalesmanRoute> population);
 	void setCurrentGeneration(int generation);
 	void addPointToGraph(int generation, double distance);
 	void clearGraphPoints();
@@ -45,12 +45,13 @@ private:
 public:
 	TsmHelper();
 	TsmHelper(vector<City>);
-	SalesmanRoute GetBestRoute();  
+	SalesmanRoute GetBestRoute();
+	vector<SalesmanRoute> GetPopulation();
 	int GetCurrentGeneration();
 	vector<GraphPoint> GetGenerationGraph();
-	void GeneticAlgorithm(int populationSize, int generations, bool reverseCrossover, bool adaptiveMutator);
-	void GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int populationSize, int generations, bool reverseCrossover, bool adaptiveMutator);
-	void GeneticStatistics(int sampleSize, int populationSize, int generations, bool reverseCrossover, bool adaptiveMutator);
+	void GeneticAlgorithm(int populationSize, int generations);
+	void GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int populationSize, int generations);
+	void GeneticStatistics(int sampleSize, int populationSize, int generations);
 	bool IsJobFinished();
 	struct RouteStatistics routeStats;
 	~TsmHelper(); 

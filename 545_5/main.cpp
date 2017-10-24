@@ -208,92 +208,7 @@ void PrintRoute(SalesmanRoute route)
 	cout << cities[0].CityId << endl;
 }
 
-void runGeneticStatistics(vector<City> cities)
-{
-	GLFWwindow* window = initalizeGlfw();
-	
-	Shader shader("../vshader.glsl", "../fshader.glsl");
-	shader.set4f("myColor", 0.498f, 1.0f, 0.0f, 1.0f);
-	
-	vector<thread> algorithmThreads;
-	vector<TsmHelper*> tsmHelpers;
-	int generations = 3000;
-	
-	for(int i = 0; i < 4; i++)
-	{
-		TsmHelper* tsmHelper = new TsmHelper(cities);
-		tsmHelpers.push_back(tsmHelper);
-	}
-	
-	//start timer
-	clock_t start;
-	double runTime;
-	start = clock();
-	
-	//create and start threads
-	algorithmThreads.push_back(thread(&TsmHelper::GeneticStatistics, tsmHelpers[0], 10, 100, generations, false, false));
-	algorithmThreads.push_back(thread(&TsmHelper::GeneticStatistics, tsmHelpers[1], 10, 100, generations, true, false));
-	algorithmThreads.push_back(thread(&TsmHelper::GeneticStatistics, tsmHelpers[2], 10, 100, generations, false, true));
-	algorithmThreads.push_back(thread(&TsmHelper::GeneticStatistics, tsmHelpers[3], 10, 100, generations, true, true));
-	
-	//render loop
-	while(!glfwWindowShouldClose(window))
-	{
-		processInput(window);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		//draw routes
-		drawRoute((*tsmHelpers[0]).GetBestRoute(), shader, -0.5, 0.5, 1.0f, 5.0f);
-		drawRoute((*tsmHelpers[1]).GetBestRoute(), shader, 0.5, 0.5, 1.0f, 5.0f);
-		drawRoute((*tsmHelpers[2]).GetBestRoute(), shader, -0.5, -0.5, 1.0f, 5.0f);
-		drawRoute((*tsmHelpers[3]).GetBestRoute(), shader, 0.5, -0.5, 1.0f, 5.0f);
-		
-		//draw graphs for routes
-		drawGraph((*tsmHelpers[0]).GetGenerationGraph(), shader, generations, -0.5f, 0.0f, 0.25f);
-		drawGraph((*tsmHelpers[1]).GetGenerationGraph(), shader, generations, 0.5f, 0.0f, 0.25f);
-		drawGraph((*tsmHelpers[2]).GetGenerationGraph(), shader, generations, -0.5f, -0.25f, 0.25f);
-		drawGraph((*tsmHelpers[3]).GetGenerationGraph(), shader, generations, 0.5f, -0.25f, 0.25f);
-		
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-		
-		for(int i = 0; i < 4; i++)
-		{
-			cout << "Generation " << (*tsmHelpers[i]).GetCurrentGeneration() << ": " << (*tsmHelpers[i]).GetBestRoute().GetTotalDistance() << endl;
-		}
-		cout << endl;
-		
-		
-		chrono::milliseconds dura(500);
-		this_thread::sleep_for(dura);
-	}
-	
-	glfwTerminate();
-	
-	for(unsigned int i = 0; i < algorithmThreads.size(); i++)
-	{
-		if(algorithmThreads[i].joinable())
-		{
-			algorithmThreads[i].join();
-		}
-	}
-	
-	for(unsigned int i = 0; i < tsmHelpers.size(); i++)
-	{
-		cout << "Algorithm Variation: " << i << endl
-			<< "Average: " << (*tsmHelpers[i]).routeStats.average << endl
-			<< "Standard Deviation: " << (*tsmHelpers[i]).routeStats.stdDeviation << endl
-			<< "Max: " << (*tsmHelpers[i]).routeStats.max << endl
-			<< "Min: " << (*tsmHelpers[i]).routeStats.min << endl << endl;
-	}
-	
-	//end timer and print output
-	runTime = (clock() - start)/(double)CLOCKS_PER_SEC;
-	cout << "Run time: " << runTime << endl;
-	
-	return;
-}
+
 
 void generateSuperRoute(vector<City> cities)
 {
@@ -303,8 +218,11 @@ void generateSuperRoute(vector<City> cities)
 	vector<thread> algorithmThreads;
 	vector<TsmHelper*> tsmHelpers;
 	
-	unsigned int populationSize = 100;
+	
+	unsigned int populationSize = 16;
 	unsigned int maxThreads = 4;
+	
+	int gaPopulation = 50;
 	int generations = 3000;
 	
 	WisdomOfCrowdsHelper* wisemanHelper;
@@ -355,7 +273,8 @@ void generateSuperRoute(vector<City> cities)
 					if( !(*tsmHelpers[i]).IsJobFinished() && !isProcessing)
 					{
 						currentThreads.push_back(i);
-						algorithmThreads.push_back(thread(&TsmHelper::GeneticAlgorithm, tsmHelpers[i], populationSize, generations, false, false));
+						algorithmThreads.push_back(thread(&TsmHelper::GeneticAlgorithm, tsmHelpers[i], gaPopulation, generations));
+						cout << "thread vector size: " << algorithmThreads.size() << endl;
 					}
 					if(currentThreads.size() == maxThreads)
 					{
@@ -368,7 +287,7 @@ void generateSuperRoute(vector<City> cities)
 				}
 			}
 			
-			//draw graphs
+			/*//draw graphs
 			int k = 0;
 			for(unsigned int i = 0; i < 10; i++)
 			{
@@ -377,7 +296,7 @@ void generateSuperRoute(vector<City> cities)
 					drawRoute((*tsmHelpers[k]).GetBestRoute(), shader, (15.0f*j/populationSize)-.75, (15.0f*i/populationSize)-.5, (0.3f), 3.0f);
 					k++;
 				}
-			}
+			}*/
 			
 			//check if done
 			doneProcessing = true;
@@ -396,7 +315,8 @@ void generateSuperRoute(vector<City> cities)
 				vector<SalesmanRoute> routes;
 				for(unsigned int i = 0; i < populationSize; i++)
 				{
-					routes.push_back((*tsmHelpers[i]).GetBestRoute());
+					vector<SalesmanRoute> popToInsert = (*tsmHelpers[i]).GetPopulation();
+					routes.insert(routes.end(), popToInsert.begin(), popToInsert.end());
 				}
 				wisemanHelper = new WisdomOfCrowdsHelper(routes);
 				

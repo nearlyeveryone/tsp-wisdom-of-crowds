@@ -65,7 +65,7 @@ void SalesmanRoute::Mutate(int timesToMutate)
 	}
 }
 
-SalesmanRoute SalesmanRoute::CrossoverSplit(SalesmanRoute mate, bool reverseCrossover)
+SalesmanRoute SalesmanRoute::CrossoverSplit(SalesmanRoute mate)
 {	
 	SalesmanRoute child;
 	
@@ -75,9 +75,6 @@ SalesmanRoute SalesmanRoute::CrossoverSplit(SalesmanRoute mate, bool reverseCros
 		City fakeCity(-1,-1,-1); 
 		child._route.push_back(fakeCity);
 	}
-	
-	if(reverseCrossover)
-		reverse(mate._route.begin(), mate._route.begin());
 	
 	//find shortest subsegment
 	unsigned int segmentLength = (rand() % this->_route.size())/2 +this->_route.size()/20;
