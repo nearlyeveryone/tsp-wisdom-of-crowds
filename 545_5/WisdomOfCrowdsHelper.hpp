@@ -19,6 +19,7 @@ public:
 	WisdomOfCrowdsHelper(vector<SalesmanRoute> population): _population(population)
 	{
 		_cities = population[0].GetRoute();
+		_wiseman = SalesmanRoute(_cities);
 	}
 	WisdomOfCrowdsHelper(){};
 	

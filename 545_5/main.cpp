@@ -219,11 +219,11 @@ void generateSuperRoute(vector<City> cities)
 	vector<TsmHelper*> tsmHelpers;
 	
 	
-	unsigned int populationSize = 16;
+	unsigned int populationSize = (int)cities.size()*2;
 	unsigned int maxThreads = 4;
 	
-	int gaPopulation = 50;
-	int generations = 3000;
+	int gaPopulation = (int)cities.size()*2;
+	int generations = 30*(int)cities.size();
 	
 	WisdomOfCrowdsHelper* wisemanHelper;
 	thread superThread;
@@ -315,6 +315,7 @@ void generateSuperRoute(vector<City> cities)
 				vector<SalesmanRoute> routes;
 				for(unsigned int i = 0; i < populationSize; i++)
 				{
+					cout << "Population " << i << ":" << (*tsmHelpers[i]).GetBestRoute().GetTotalDistance() << endl;
 					vector<SalesmanRoute> popToInsert = (*tsmHelpers[i]).GetPopulation();
 					routes.insert(routes.end(), popToInsert.begin(), popToInsert.end());
 				}
@@ -331,7 +332,7 @@ void generateSuperRoute(vector<City> cities)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		chrono::milliseconds dura(2000);
+		chrono::milliseconds dura(500);
 		this_thread::sleep_for(dura);
 	}
 	
