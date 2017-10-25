@@ -40,10 +40,11 @@ void WisdomOfCrowdsHelper::GenerateWiseman()
 	
 	//start with arbitrary city
 	vector<City> newRoute;
-	newRoute.push_back(_cities[0]);
+	vector<City> remainingCities = _cities;
+	newRoute.push_back(remainingCities[rand() % _cities.size()]);
 		
 	//add the most selected next city that isnt currently in the route.
-	for(unsigned int i = 0; i < _cities.size() - 2; i++)
+	for(unsigned int i = 0; i < _cities.size() - 1; i++)
 	{
 		//find the next candidate to be added
 		int bestCityId;
@@ -52,7 +53,8 @@ void WisdomOfCrowdsHelper::GenerateWiseman()
 		{
 			if(newRoute[i].CityCounters[j].count > bestCount)
 			{
-				//city isnt already in the route
+				//city isnt already in the route, this is the part that makes the algorithm greedy,
+				//it selects the 1st,2nd...jth best city to insert
 				if(getCityIndexById(newRoute, newRoute[i].CityCounters[j].cityId) == -1)
 				{
 					bestCityId = newRoute[i].CityCounters[j].cityId;
