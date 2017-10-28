@@ -6,7 +6,6 @@
 #include <thread>
 #include <mutex>
 #include <iostream>
-#include <vector>
 
 #include "City.hpp"
 #include "SalesmanRoute.hpp"

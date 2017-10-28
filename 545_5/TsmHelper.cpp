@@ -71,47 +71,6 @@ bool TsmHelper::IsJobFinished()
 	return jobFinished;
 }
 
-void TsmHelper::GeneticStatistics(int sampleSize, int populationSize, int generations)
-{
-	vector<SalesmanRoute> routes;
-	struct RouteStatistics routeStatistics;
-	
-	//collect data
-	for(int i = 0; i < sampleSize; i++)
-	{
-		GeneticAlgorithm(populationSize, generations);
-		if(routeStatistics.max == -1 || GetBestRoute().GetTotalDistance() > routeStatistics.max)
-		{
-			routeStatistics.max = GetBestRoute().GetTotalDistance();
-		}
-		if(routeStatistics.min == -1 || GetBestRoute().GetTotalDistance() < routeStatistics.min)
-		{
-			routeStatistics.min = GetBestRoute().GetTotalDistance();
-		}
-		routes.push_back(GetBestRoute());
-	}
-	
-	//calculate std deviation and average
-	double sum = 0.0, mean, standardDeviation = 0.0;
-	for(unsigned int i = 0; i < routes.size(); i++)
-	{
-		sum += routes[i].GetTotalDistance();
-	}
-	
-	mean = sum/routes.size();
-	//set average
-	routeStatistics.average = mean;
-	
-	for(unsigned int i = 0; i < routes.size(); i++)
-	{
-		standardDeviation += pow(routes[i].GetTotalDistance() - mean, 2);
-	}
-	//set standard deviation
-	routeStatistics.stdDeviation = sqrt(standardDeviation/routes.size());
-	
-	routeStats = routeStatistics;
-}
-
 void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int populationSize, int generations)
 {
 	vector<SalesmanRoute> population = initalPopulation;

@@ -21,6 +21,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "Shader.hpp"
+#include "TrueTypeHelper.hpp"
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -68,12 +69,16 @@ GLFWwindow* initalizeGlfw()
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+	
 	// glad: load all OpenGL function pointers
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
+	
+	glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	return window;
 }
@@ -107,7 +112,6 @@ void drawRoute(SalesmanRoute route, Shader shader, float offSetX, float offSety,
 	
 	glBindVertexArray(vao);
 	
-	shader.set4f("myColor", 0.498f, 1.0f, 0.0f, 1.0f);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices.front(), GL_STATIC_DRAW);
 	
@@ -115,9 +119,11 @@ void drawRoute(SalesmanRoute route, Shader shader, float offSetX, float offSety,
 	glEnableVertexAttribArray(0);
 	
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	shader.setFloat("myPointSize", pointSize);
 	
 	glUseProgram(shader.Id);
+	shader.setFloat("myPointSize", pointSize);
+	
+	shader.set4f("myColor", 0.498f, 1.0f, 0.0f, 1.0f);
 	glDrawArrays(GL_LINE_LOOP, 0, vertices.size()/3);
 	
 	shader.set4f("myColor", 0.275f, 0.519f, 0.706f, 1.0f);
@@ -208,12 +214,17 @@ void PrintRoute(SalesmanRoute route)
 	cout << cities[0].CityId << endl;
 }
 
-
-
 void generateSuperRoute(vector<City> cities)
 {
 	GLFWwindow* window = initalizeGlfw();
 	Shader shader("../vshader.glsl", "../fshader.glsl");
+	
+	Shader fontShader("../fontvShader.glsl", "../fontfShader.glsl");
+	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
+	fontShader.use();
+	glUniformMatrix4fv(glGetUniformLocation(fontShader.Id, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	TrueTypeHelper font;
+	font.initalizeFace();
 	
 	vector<thread> algorithmThreads;
 	vector<TsmHelper*> tsmHelpers;
@@ -227,6 +238,7 @@ void generateSuperRoute(vector<City> cities)
 	
 	WisdomOfCrowdsHelper* wisemanHelper;
 	thread superThread;
+	double avgGADist = 0;
 	
 	for(unsigned int i = 0; i < populationSize; i++)
 	{
@@ -242,6 +254,9 @@ void generateSuperRoute(vector<City> cities)
 		processInput(window);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+		
+		string threadsText = "thread vector size: " + to_string(algorithmThreads.size()) + "/" + to_string(tsmHelpers.size());
+		font.RenderText(fontShader,threadsText, 25.0f, 500.0f, 0.3f, glm::vec3(0.5, 0.8f, 0.2f));
 		
 		if(!doneProcessing)
 		{
@@ -287,16 +302,10 @@ void generateSuperRoute(vector<City> cities)
 				}
 			}
 			
-			/*//draw graphs
-			int k = 0;
-			for(unsigned int i = 0; i < 10; i++)
+			for(int i = 0; i < 4; i++)
 			{
-				for(unsigned int j = 0; j < 10; j++)
-				{
-					drawRoute((*tsmHelpers[k]).GetBestRoute(), shader, (15.0f*j/populationSize)-.75, (15.0f*i/populationSize)-.5, (0.3f), 3.0f);
-					k++;
-				}
-			}*/
+				drawRoute((*tsmHelpers[i+algorithmThreads.size() - 4]).GetBestRoute(), shader, -0.5 + i*0.40, 0.0, 0.75, 3.0);
+			}
 			
 			//check if done
 			doneProcessing = true;
@@ -315,24 +324,50 @@ void generateSuperRoute(vector<City> cities)
 				vector<SalesmanRoute> routes;
 				for(unsigned int i = 0; i < populationSize; i++)
 				{
-					cout << "Population " << i << ":" << (*tsmHelpers[i]).GetBestRoute().GetTotalDistance() << endl;
+					avgGADist += (*tsmHelpers[i]).GetBestRoute().GetTotalDistance();
 					vector<SalesmanRoute> popToInsert = (*tsmHelpers[i]).GetPopulation();
 					routes.insert(routes.end(), popToInsert.begin(), popToInsert.end());
 				}
+				avgGADist = avgGADist/populationSize;
 				wisemanHelper = new WisdomOfCrowdsHelper(routes);
 				
-				superThread = thread(&WisdomOfCrowdsHelper::GenerateWiseman, wisemanHelper);
+				//superThread = thread(&WisdomOfCrowdsHelper::GenerateWiseman, wisemanHelper);
+				superThread = thread(&WisdomOfCrowdsHelper::WisdomStatistics, wisemanHelper, 10000);
 			}
 		} else {
-			drawRoute((*wisemanHelper).GetWiseman(), shader, 0.0f, 0.0f, 2.00f, 5.0f);
-			//cout << "Generation " << (*superRoute).GetCurrentGeneration() << ": " << (*superRoute).GetBestRoute().GetTotalDistance() << endl;
+			if((*wisemanHelper).wiseStats.stdDeviation == -1)
+			{
+				drawRoute((*wisemanHelper).GetWiseman(), shader, -0.25f, -0.25f, 2.00f, 5.0f);
+				string threadsText = "distance: " + to_string((*wisemanHelper).GetWiseman().GetTotalDistance());
+				font.RenderText(fontShader,threadsText, 100.0f, 100.0f, 0.3f, glm::vec3(0.5, 0.8f, 0.2f));
+			} else {
+				drawRoute((*wisemanHelper)._wisemans[0], shader, -0.25f, -0.25f, 2.00f, 5.0f);
+				glm::vec3 color(0.5, 0.8f, 0.2f);
+				
+				font.RenderText(fontShader,
+					"average best GA distance: " + to_string(avgGADist),
+					25.0f, 130.0f, 0.3f, color);
+				font.RenderText(fontShader,
+					"average distance: " + to_string((*wisemanHelper).wiseStats.average),
+					25.0f, 100.0f, 0.3f, color);
+				font.RenderText(fontShader,
+					"std. dev. distance: " + to_string((*wisemanHelper).wiseStats.stdDeviation),
+					25.0f, 70.0f, 0.3f, color);
+				font.RenderText(fontShader,
+					"max distance: " + to_string((*wisemanHelper).wiseStats.max),
+					25.0f, 40.0f, 0.3f, color);
+				font.RenderText(fontShader,
+					"min distance: " + to_string((*wisemanHelper).wiseStats.min),
+					25.0f, 10.0f, 0.3f, color);
+			}
+			
 		}
 		
 		//swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		chrono::milliseconds dura(500);
+		chrono::milliseconds dura(16);
 		this_thread::sleep_for(dura);
 	}
 	
