@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=nearlyeveryone
-Date                   :=25/10/17
+Date                   :=28/10/17
 CodeLitePath           :=/home/nearlyeveryone/.codelite
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
@@ -35,7 +35,7 @@ PreprocessOnlySwitch   :=-E
 ObjectsFileList        :="545_5.txt"
 PCHCompileFlags        :=
 MakeDirCommand         :=mkdir -p
-LinkOptions            :=  -lGL -lGLU -lX11 -lXxf86vm -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor
+LinkOptions            :=  -lGL -lGLU -lfreetype -lftgl -lX11 -lXxf86vm -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor
 IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch)/usr/include 
 IncludePCH             := 
 RcIncludePath          := 
@@ -60,7 +60,7 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/City.cpp$(ObjectSuffix) $(IntermediateDirectory)/glad.c$(ObjectSuffix) $(IntermediateDirectory)/SalesmanRoute.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) $(IntermediateDirectory)/TsmHelper.cpp$(ObjectSuffix) $(IntermediateDirectory)/WisdomOfCrowdsHelper.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/City.cpp$(ObjectSuffix) $(IntermediateDirectory)/glad.c$(ObjectSuffix) $(IntermediateDirectory)/SalesmanRoute.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) $(IntermediateDirectory)/TsmHelper.cpp$(ObjectSuffix) $(IntermediateDirectory)/WisdomOfCrowdsHelper.cpp$(ObjectSuffix) $(IntermediateDirectory)/TrueTypeHelper.cpp$(ObjectSuffix) 
 
 
 
@@ -146,6 +146,14 @@ $(IntermediateDirectory)/WisdomOfCrowdsHelper.cpp$(DependSuffix): WisdomOfCrowds
 
 $(IntermediateDirectory)/WisdomOfCrowdsHelper.cpp$(PreprocessSuffix): WisdomOfCrowdsHelper.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/WisdomOfCrowdsHelper.cpp$(PreprocessSuffix) WisdomOfCrowdsHelper.cpp
+
+$(IntermediateDirectory)/TrueTypeHelper.cpp$(ObjectSuffix): TrueTypeHelper.cpp $(IntermediateDirectory)/TrueTypeHelper.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nearlyeveryone/CECS545/project5/545_5/TrueTypeHelper.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/TrueTypeHelper.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/TrueTypeHelper.cpp$(DependSuffix): TrueTypeHelper.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/TrueTypeHelper.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/TrueTypeHelper.cpp$(DependSuffix) -MM TrueTypeHelper.cpp
+
+$(IntermediateDirectory)/TrueTypeHelper.cpp$(PreprocessSuffix): TrueTypeHelper.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/TrueTypeHelper.cpp$(PreprocessSuffix) TrueTypeHelper.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

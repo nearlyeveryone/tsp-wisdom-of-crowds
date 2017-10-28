@@ -1,5 +1,4 @@
 #include "WisdomOfCrowdsHelper.hpp"
-#include <iostream>
 
 using namespace std;
 
@@ -15,7 +14,7 @@ SalesmanRoute WisdomOfCrowdsHelper::GetWiseman()
 	return _wiseman;
 }
 
-void WisdomOfCrowdsHelper::GenerateWiseman()
+void WisdomOfCrowdsHelper::TallyCities()
 {
 	//tally most frequently preceding cities for each city
 	for(unsigned int i = 0; i < _population.size(); i++)
@@ -37,7 +36,14 @@ void WisdomOfCrowdsHelper::GenerateWiseman()
 			}
 		}
 	}
-	
+}
+void WisdomOfCrowdsHelper::GenerateWiseman()
+{
+	if(!tallied)
+	{
+		TallyCities();
+		tallied = true;
+	}
 	//start with arbitrary city
 	vector<City> newRoute;
 	vector<City> remainingCities = _cities;
@@ -80,4 +86,41 @@ int WisdomOfCrowdsHelper::getCityIndexById(const vector<City>& cities, int Id)
 	}
 	
 	return -1;
+}
+
+void WisdomOfCrowdsHelper::WisdomStatistics(int sampleSize)
+{
+	vector<SalesmanRoute> routes;
+	struct WiseStatistics wiseStatistics;
+	
+	//collect data
+	for(int i = 0; i < sampleSize; i++)
+	{
+		GenerateWiseman();
+		routes.push_back(GetWiseman());
+	}
+	sort(routes.begin(), routes.end());
+	_wisemans = routes;
+	wiseStatistics.max = routes.back().GetTotalDistance();
+	wiseStatistics.min = routes.front().GetTotalDistance();
+	
+	//calculate std deviation and average
+	double sum = 0.0, mean, standardDeviation = 0.0;
+	for(unsigned int i = 0; i < routes.size(); i++)
+	{
+		sum += routes[i].GetTotalDistance();
+	}
+	
+	mean = sum/routes.size();
+	//set average
+	wiseStatistics.average = mean;
+	
+	for(unsigned int i = 0; i < routes.size(); i++)
+	{
+		standardDeviation += pow(routes[i].GetTotalDistance() - mean, 2);
+	}
+	//set standard deviation
+	wiseStatistics.stdDeviation = sqrt(standardDeviation/routes.size());
+	
+	wiseStats = wiseStatistics;
 }

@@ -22,6 +22,10 @@
     <File Name="vshader.glsl"/>
     <File Name="WisdomOfCrowdsHelper.hpp"/>
     <File Name="WisdomOfCrowdsHelper.cpp"/>
+    <File Name="TrueTypeHelper.hpp"/>
+    <File Name="TrueTypeHelper.cpp"/>
+    <File Name="fontvShader.glsl"/>
+    <File Name="fontfShader.glsl"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
@@ -37,7 +41,7 @@
       <Compiler Options="-g;-O0;-Wall;-std=c++11" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="/usr/include"/>
       </Compiler>
-      <Linker Options="-lGL -lGLU -lX11 -lXxf86vm -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor" Required="yes">
+      <Linker Options="-lGL -lGLU -lfreetype -lftgl -lX11 -lXxf86vm -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor" Required="yes">
         <LibraryPath Value="/usr/lib/x86_64-linux-gnu/"/>
         <Library Value="libglfw.so"/>
       </Linker>
