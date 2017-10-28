@@ -75,15 +75,12 @@ void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int po
 {
 	vector<SalesmanRoute> population = initalPopulation;
 	
-	srand(time(NULL));
-	
 	setCurrentGeneration(0);
 	setPopulation(population);
 	clearGraphPoints();
 	addPointToGraph(0, GetBestRoute().GetTotalDistance());
 	
 	int mutationRate = (GetBestRoute().GetRoute().size()/20)+1;
-	SalesmanRoute overallBestRoute;
 	
 	for(int i = 0; i < generations; i++)
 	{
@@ -100,9 +97,13 @@ void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int po
 			children.push_back(offspring);
 		}
 		
+		
 		//take ~75% of the children, and ~25% of the top of the previous generation
 		children.resize(populationSize-populationSize/4 + 1);
 		children.insert(children.end(), population.begin(), population.begin() + populationSize/4 + 1);
+		
+		//sort by fitness to ensure that the top 25% is taken in the next generation
+		population = children;
 		
 		//mutate population
 		for(unsigned int j = 0; j < population.size()/20+1; j++)
@@ -110,14 +111,10 @@ void TsmHelper::GeneticAlgorithm2(vector<SalesmanRoute> initalPopulation, int po
 			population[rand() % population.size()].Mutate(mutationRate);
 		}
 		
-		//sort by fitness to ensure that the top 25% is taken in the next generation
-		population = children;
+
 		sort(population.begin(), population.end());
 		
-		if(GetBestRoute().GetTotalDistance() > population[0].GetTotalDistance())
-		{
-			setPopulation(population);
-		}
+		setPopulation(population);
 		setCurrentGeneration(i+1);
 		addPointToGraph(i+1, population[0].GetTotalDistance());
 	}

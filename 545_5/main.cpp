@@ -43,6 +43,7 @@ void generateSuperRoute(vector<City> cities);
 
 int main(int argc, char* argv[])
 {
+	srand(time(NULL));
 	//parse file and populate cities
 	vector<City> cities;
 	cities = ReadCities(argv[1]);
@@ -230,11 +231,11 @@ void generateSuperRoute(vector<City> cities)
 	vector<TsmHelper*> tsmHelpers;
 	
 	
-	unsigned int populationSize = (int)cities.size()*2;
+	unsigned int populationSize = 10;
 	unsigned int maxThreads = 4;
 	
-	int gaPopulation = (int)cities.size()*2;
-	int generations = 30*(int)cities.size();
+	int gaPopulation = 100;
+	int generations = 3000;
 	
 	WisdomOfCrowdsHelper* wisemanHelper;
 	thread superThread;
@@ -305,6 +306,10 @@ void generateSuperRoute(vector<City> cities)
 			for(int i = 0; i < 4; i++)
 			{
 				drawRoute((*tsmHelpers[i+algorithmThreads.size() - 4]).GetBestRoute(), shader, -0.5 + i*0.40, 0.0, 0.75, 3.0);
+				glm::vec3 color(0.5, 0.8f, 0.2f);
+				font.RenderText(fontShader,
+					"gen: " + to_string((*tsmHelpers[i+algorithmThreads.size() - 4]).GetCurrentGeneration()) + ", length: " + to_string((*tsmHelpers[i+algorithmThreads.size() - 4]).GetBestRoute().GetTotalDistance()),
+					130.0f + i*150, 200.0f - 30*i, 0.3f, color);
 			}
 			
 			//check if done
@@ -367,7 +372,7 @@ void generateSuperRoute(vector<City> cities)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		chrono::milliseconds dura(16);
+		chrono::milliseconds dura(1000);
 		this_thread::sleep_for(dura);
 	}
 	
