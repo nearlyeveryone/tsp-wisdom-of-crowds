@@ -78,8 +78,8 @@ GLFWwindow* initalizeGlfw()
 	}
 	
 	glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	return window;
 }
@@ -231,11 +231,11 @@ void generateSuperRoute(vector<City> cities)
 	vector<TsmHelper*> tsmHelpers;
 	
 	
-	unsigned int populationSize = 10;
+	unsigned int populationSize = 40;
 	unsigned int maxThreads = 4;
 	
 	int gaPopulation = 100;
-	int generations = 3000;
+	int generations = 300;
 	
 	WisdomOfCrowdsHelper* wisemanHelper;
 	thread superThread;
@@ -256,8 +256,12 @@ void generateSuperRoute(vector<City> cities)
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		string threadsText = "thread vector size: " + to_string(algorithmThreads.size()) + "/" + to_string(tsmHelpers.size());
-		font.RenderText(fontShader,threadsText, 25.0f, 500.0f, 0.3f, glm::vec3(0.5, 0.8f, 0.2f));
+		string threadsText = "# of ga runs: " + to_string(algorithmThreads.size()) + "/" + to_string(tsmHelpers.size()); 
+		font.RenderText(fontShader,threadsText, 25.0f, 500.0f, 0.3f, glm::vec3(0.5, 0.8f, 0.2f)); 
+		string popText = "ga population size: " + to_string(gaPopulation); 
+		font.RenderText(fontShader,popText, 25.0f, 470.0f, 0.3f, glm::vec3(0.5, 0.8f, 0.2f)); 
+		string genText = "generations per ga: " + to_string(generations); 
+		font.RenderText(fontShader,genText, 25.0f, 440.0f, 0.3f, glm::vec3(0.5, 0.8f, 0.2f));;
 		
 		if(!doneProcessing)
 		{
